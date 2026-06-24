@@ -1,0 +1,120 @@
+#!/bin/bash
+
+# Catppuccin Frappe Palette
+# BG_COLOR=0xff303446
+# FG_COLOR=0xffc6d0f5
+#ACCENT_COLOR=0xff96cdfb
+# ICON_HIGHLIGHT=0xfff2d5cf
+# WARNING_COLOR=0xffe78284
+
+# Nord Color Palette
+BG_COLOR=0xff2e3440      # Background
+FG_COLOR=0xffeceff4      # Foreground
+ACCENT_COLOR=0xff88c0d0  # Primary Accent (Nord Frost - Light Blue)
+ICON_HIGHLIGHT=0xffebcb8b # Highlight (Nord Frost - Yellow)
+WARNING_COLOR=0xffbf616a  # Warning (Nord Red)
+
+PLUGIN_DIR="$HOME/.config/sketchybar/plugins"
+
+##### Bar Appearance #####
+sketchybar --bar \
+    position=top \
+    height=26 \
+    padding_left=20 \
+    padding_right=20 \
+    color=0x55303446 \
+    blur_radius=20 \
+    corner_radius=25 \
+    margin=20 \
+    y_offset=5 \
+    shadow=on
+
+
+##### Changing Defaults #####
+default=(
+    padding_left=8
+    padding_right=8
+    icon.padding_left=6
+    icon.padding_right=4
+    label.padding_left=4
+    label.padding_right=6
+    background.padding_right=10
+    background.padding_left=10
+    icon.font="Hack Nerd Font:Bold:17.0"
+    label.font="Hack Nerd Font:Bold:14.0"
+    icon.color=$FG_COLOR
+    label.color=$FG_COLOR
+    background.corner_radius=10
+    background.height=22
+)
+sketchybar --default "${default[@]}"
+
+##### Adding Mission Control Space Indicators #####
+SPACE_ICONS=("1" "2" "3" "4" "5" "6" "7" "8" "9" "10")
+for i in "${!SPACE_ICONS[@]}"
+do
+    sid="$(($i+1))"
+    space=(
+        space="$sid"
+        icon="${SPACE_ICONS[i]}"
+        icon.padding_left=5
+        icon.padding_right=5
+        background.color=0x40ffffff
+        background.corner_radius=4
+        background.height=20
+        label.drawing=off
+        script="$PLUGIN_DIR/space.sh"
+        click_script="yabai -m space --focus $sid"
+    )
+    sketchybar --add space space."$sid" left --set space."$sid" "${space[@]}"
+done
+
+sketchybar --add spacer left --set spacer width=20
+
+sketchybar --add item front_app left \
+           --set front_app \
+           icon.drawing=off \
+           script="$PLUGIN_DIR/front_app.sh" \
+           --subscribe front_app front_app_switched \
+           
+
+sketchybar --add spacer left --set spacer width=20
+
+# Clock
+sketchybar --add item clock right \
+           --set clock update_freq=10 icon= \
+           script="$PLUGIN_DIR/clock.sh" \
+
+# Volume
+sketchybar --add item volume right \
+           --set volume \
+           script="$PLUGIN_DIR/volume.sh" \
+           --subscribe volume volume_change 
+           
+
+# Battery
+sketchybar --add item battery right \
+           --set battery \
+           update_freq=120 \
+           script="$PLUGIN_DIR/battery.sh" \
+           icon.color=$ACCENT_COLOR \
+           label.color=$FG_COLOR \
+           --subscribe battery system_woke power_source_change \
+           
+
+# Spotify
+sketchybar --add item spotify right \
+           --set spotify \
+           label.drawing=yes \
+           update_freq=1 \
+           script="$PLUGIN_DIR/spotify.sh" \
+           icon.color=$ACCENT_COLOR \
+           icon.highlight_color=$ICON_HIGHLIGHT \
+
+
+# Add Spotify event subscription
+sketchybar --add event spotify_change com.spotify.client.PlaybackStateChanged
+sketchybar --subscribe spotify spotify_change
+
+##### Update all items #####
+sketchybar --update
