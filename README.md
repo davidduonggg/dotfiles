@@ -1,3 +1,3 @@
 # dotfiles
 
-This is where I keep my configs!
+My configs for MacOS.
